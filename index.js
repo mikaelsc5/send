@@ -137,6 +137,10 @@ function SendStream(req, path, options) {
   if (!this._root && opts.from) {
     this.from(opts.from)
   }
+
+  this._redirect = opts.redirect !== undefined
+    ? Boolean(opts.redirect)
+    : true
 }
 
 /**
@@ -595,7 +599,13 @@ SendStream.prototype.sendFile = function sendFile(path) {
       return next(err)
     }
     if (err) return self.onStatError(err)
-    if (stat.isDirectory()) return self.redirect(self.path)
+    if (stat.isDirectory()) {      
+      if (self._redirect) {
+        return self.redirect(self.path)
+      } else {
+        return next(err)
+      }
+    }
     self.emit('file', path, stat)
     self.send(path, stat)
   })
